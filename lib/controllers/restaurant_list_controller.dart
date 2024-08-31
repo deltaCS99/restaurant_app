@@ -8,24 +8,27 @@ class RestaurantListController extends StateNotifier<AsyncValue<List<Restaurant>
   }
 
   final Ref ref;
+  List<Restaurant> _allRestaurants = [];
 
   Future<void> loadRestaurants() async {
     state = const AsyncValue.loading();
     try {
-      final restaurants = await ref.read(restaurantRepositoryProvider).loadRestaurants();
-      state = AsyncValue.data(restaurants);
+      _allRestaurants = await ref.read(restaurantRepositoryProvider).loadRestaurants();
+      state = AsyncValue.data(_allRestaurants);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
   }
 
   void searchRestaurants(String query) {
-    state.whenData((restaurants) {
-      final filteredRestaurants = restaurants.where((restaurant) =>
+    if (query.isEmpty) {
+      state = AsyncValue.data(_allRestaurants);
+    } else {
+      final filteredRestaurants = _allRestaurants.where((restaurant) =>
           restaurant.name.toLowerCase().contains(query.toLowerCase())
       ).toList();
       state = AsyncValue.data(filteredRestaurants);
-    });
+    }
   }
 }
 
